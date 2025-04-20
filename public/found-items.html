@@ -1,0 +1,1128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SotonFind - Found Items</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f5f7fb;
+            overflow-x: hidden;
+        }
+        
+        /* Sidebar styles */
+        .sidebar {
+            height: 100vh;
+            background: linear-gradient(180deg, #4f46e5 0%, #3b82f6 100%);
+            transition: all 0.3s;
+            box-shadow: 4px 0 10px rgba(0, 0, 0, 0.05);
+            position: fixed;
+            left: 0;
+            z-index: 30;
+        }
+        
+        .sidebar-collapsed {
+            width: 80px;
+        }
+        
+        .sidebar-expanded {
+            width: 250px;
+        }
+        
+        .sidebar-link {
+            color: white;
+            border-radius: 8px;
+            transition: all 0.2s;
+            margin: 5px 12px;
+        }
+        
+        .sidebar-link:hover, .sidebar-link.active {
+            background-color: rgba(255, 255, 255, 0.2);
+        }
+        
+        /* Header styles */
+        .header {
+            background-color: white;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+        }
+        
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid #e5e7eb;
+        }
+        
+        /* Card styles */
+        .card {
+            background-color: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+            transition: all 0.3s;
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+        
+        .item-card {
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+            transition: all 0.3s;
+        }
+        
+        .item-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+        
+        .item-image, .item-image-placeholder {
+            height: 200px;
+            object-fit: cover;
+        }
+
+        .item-image-placeholder {
+            background-color: #f3f4f6;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        /* Button styles */
+        .btn-primary {
+            background-color: #3b82f6;
+            color: white;
+            border-radius: 8px;
+            padding: 0.75rem 1.5rem;
+            font-weight: 600;
+            transition: all 0.3s;
+            box-shadow: 0 4px 6px -1px rgba(59, 130, 246, 0.2);
+        }
+        
+        .btn-primary:hover {
+            background-color: #2563eb;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 15px -3px rgba(59, 130, 246, 0.3);
+        }
+        
+        .btn-secondary {
+            background-color: white;
+            color: #374151;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 0.75rem 1.5rem;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+        
+        .btn-secondary:hover {
+            background-color: #f9fafb;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+        }
+        
+        /* Badge styles */
+        .badge {
+            border-radius: 9999px;
+            padding: 0.25rem 0.75rem;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+        
+        .badge-found {
+            background-color: #d1fae5;
+            color: #065f46;
+        }
+        
+        /* Animation */
+        .fade-in {
+            animation: fadeIn 0.5s ease-in-out;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        /* Sidebar text transitions */
+        .sidebar-text {
+            transition: opacity 0.3s, width 0.3s;
+            white-space: nowrap;
+            overflow: hidden;
+        }
+        
+        .sidebar-collapsed .sidebar-text {
+            opacity: 0;
+            width: 0;
+            display: none;
+        }
+        
+        .sidebar-collapsed .link-text {
+            opacity: 0;
+            width: 0;
+            display: none;
+        }
+
+        /* Category filter chip styles */
+        .filter-chip {
+            border-radius: 9999px;
+            padding: 0.5rem 1rem;
+            font-size: 0.875rem;
+            font-weight: 500;
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+        
+        .filter-chip:hover {
+            transform: translateY(-2px);
+        }
+        
+        .filter-chip.active {
+            background-color: #3b82f6;
+            color: white;
+        }
+
+        /* Modal styles */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 50;
+            align-items: center;
+            justify-content: center;
+            overflow-y: auto;
+            padding: 16rem 2rem 2rem 2rem;
+        }
+
+        .modal-content {
+            background-color: white;
+            border-radius: 1rem;
+            width: 100%;
+            max-width: 700px;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            position: relative;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.3s;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal.active .modal-content {
+            opacity: 1;
+            transform: translateY(200px);
+        }
+
+        .detail-image {
+            height: 320px;
+            width: 100%;
+            object-fit: cover;
+            border-top-left-radius: 1rem;
+            border-top-right-radius: 1rem;
+        }
+
+        .detail-info-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1.5rem;
+        }
+
+        /* Add to existing styles */
+        .detail-images-container {
+            position: relative;
+            border-top-left-radius: 1rem;
+            border-top-right-radius: 1rem;
+            overflow: hidden;
+        }
+
+        .detail-images-container img {
+            height: 100%;
+            width: auto;
+            object-fit: cover;
+            flex-shrink: 0;
+            border-radius: 0.5rem;
+            transition: transform 0.3s;
+            cursor: pointer;
+        }
+
+        .detail-images-container img:hover {
+            transform: scale(1.02);
+        }
+
+        @media (max-width: 640px) {
+            .detail-info-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .modal {
+                padding: 30rem 2rem 2rem 2rem;
+            }
+        }
+
+        .info-item {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .info-label {
+            font-size: 0.875rem;
+            color: #6b7280;
+            margin-bottom: 0.5rem;
+        }
+
+        .info-value {
+            font-weight: 600;
+            color: #1f2937;
+        }
+
+        .badge-status {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.875rem;
+            font-weight: 600;
+        }
+
+        .found-status {
+            background-color: #d1fae5;
+            color: #047857;
+        }
+
+        .claimed-status {
+            background-color: #d1fae5;
+            color: #047857;
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background-color: white;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            z-index: 10;
+        }
+
+        .modal-close:hover {
+            background-color: #f3f4f6;
+            transform: scale(1.1);
+        }
+
+        .action-button {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            border-radius: 0.5rem;
+            padding: 0.75rem 1.5rem;
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+
+        .primary-action {
+            background-color: #3b82f6;
+            color: white;
+            box-shadow: 0 4px 6px -1px rgba(59, 130, 246, 0.2);
+        }
+
+        .primary-action:hover {
+            background-color: #2563eb;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 15px -3px rgba(59, 130, 246, 0.3);
+        }
+
+        .secondary-action {
+            background-color: #f3f4f6;
+            color: #4b5563;
+        }
+
+        .secondary-action:hover {
+            background-color: #e5e7eb;
+            transform: translateY(-2px);
+        }
+    </style>
+</head>
+<body>
+    <div class="flex h-screen">
+        <!-- Sidebar -->
+        <div id="sidebar" class="sidebar sidebar-expanded">
+            <!-- Logo -->
+            <div class="p-2 pt-6 pl-4 flex items-center justify-between">
+                <div class="flex items-center">
+                    <div class="h-10 w-10 flex items-center justify-center bg-white rounded-xl">
+                        <i class="fas fa-search text-blue-600 text-xl"></i>
+                    </div>
+                    <h1 class="ml-3 text-white text-xl font-bold sidebar-text">SotonFind</h1>
+                </div>
+                <button id="toggleSidebar" class="text-white hover:bg-blue-700 rounded-full p-2">
+                    <i class="fas fa-chevron-left"></i>
+                </button>
+            </div>
+            
+            <!-- Menu Links -->
+            <div class="mt-8">
+                <!-- <a href="index.html" class="sidebar-link flex items-center py-3 px-4 mb-2">
+                    <i class="fas fa-home text-xl w-8"></i>
+                    <span class="ml-3 link-text">Home</span>
+                </a> -->
+                
+                <a href="lost-items.html" class="sidebar-link flex items-center py-3 px-4 mb-2">
+                    <i class="fas fa-search-minus text-xl w-8"></i>
+                    <span class="ml-3 link-text">Lost Items</span>
+                </a>
+                
+                <a href="found-items.html" class="sidebar-link active flex items-center py-3 px-4 mb-2">
+                    <i class="fas fa-search-plus text-xl w-8"></i>
+                    <span class="ml-3 link-text">Found Items</span>
+                </a>
+                
+                <a href="my-reports.html" class="sidebar-link flex items-center py-3 px-4 mb-2">
+                    <i class="fas fa-clipboard-list text-xl w-8"></i>
+                    <span class="ml-3 link-text">My Reports</span>
+                </a>
+
+                <!-- <a href="my-claims.html" class="sidebar-link flex items-center py-3 px-4 mb-2">
+                    <i class="fas fa-clipboard-check text-xl w-8"></i>
+                    <span class="ml-3 link-text">My Claims</span>
+                </a> -->
+
+                <div class="border-t border-blue-400 my-4 opacity-30"></div>
+                
+                <a href="user-profile.html" class="sidebar-link flex items-center py-3 px-4 mb-2">
+                    <i class="fas fa-user text-xl w-8"></i>
+                    <span class="ml-3 link-text">My Profile</span>
+                </a>
+
+                <a href=# class="sidebar-link flex items-center py-3 px-4 mb-2" id="logout">
+                    <i class="fas fa-sign-out-alt text-xl w-8"></i>
+                    <span class="ml-3 link-text">Logout</span>
+                </a>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div id="main-content" class="flex-1 ml-64 transition-all duration-300">
+            <!-- Header -->
+            <header class="header w-full flex items-center justify-between px-6 py-4 top-0 z-20">
+                <div class="flex pr-4 items-center">
+                    <h2 class="text-xl font-bold text-gray-800">Found Items</h2>
+                </div>
+                
+                <div class="flex items-center space-x-4">
+                    <a href="create-report.html" class="btn-primary py-2 px-4 flex items-center">
+                        <i class="fas fa-plus-circle mr-2"></i>
+                        <span>Create Report</span>
+                    </a>                    
+                    
+                    <!-- <div class="relative">
+                        <button class="btn-secondary p-2 rounded-full relative notification-btn">
+                            <i class="fas fa-bell text-gray-600"></i>
+                            <span class="notification-badge">3</span>
+                        </button>
+                    </div> -->
+                    
+                    <a href="user-profile.html">
+                        <div class="flex items-center bg-gray-100 hover:bg-gray-200 rounded-full p-1 pl-3 cursor-pointer">
+                            <span id="username" class="text-sm font-medium mr-2"></span>
+                            <img id="profile-pic" src="https://static.vecteezy.com/system/resources/thumbnails/003/031/764/small/blue-wide-background-with-linear-blurred-gradient-free-vector.jpg" alt="User" class="user-avatar">
+                        </div>
+                    </a>
+                </div>
+            </header>
+
+            <!-- Page Content -->
+            <main class="pt-8 px-6 pb-8 fade-in">
+                <!-- Welcome Section -->
+                <div class="card p-6 mb-8">
+                    <div class="flex items-start justify-between">
+                        <div>
+                            <h1 class="text-2xl font-bold text-gray-800">Welcome back!</h1>
+                            <p class="text-gray-600 mt-1">Track your lost items or help others find theirs.</p>
+                        </div>
+                        <img src="https://img.icons8.com/color/96/000000/search--v1.png" alt="Search" class="w-16 h-16">
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
+                        <div class="bg-blue-50 p-4 rounded-lg">
+                            <div class="flex items-center">
+                                <div class="bg-blue-100 p-3 rounded-full">
+                                    <i class="fas fa-search-minus text-blue-600"></i>
+                                </div>
+                                <div class="ml-4">
+                                    <p class="text-gray-600 text-sm">Total Lost Items</p>
+                                    <h3 class="text-xl font-bold text-gray-800" id="total-lost"></h3>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="bg-green-50 p-4 rounded-lg">
+                            <div class="flex items-center">
+                                <div class="bg-green-100 p-3 rounded-full">
+                                    <i class="fas fa-search-plus text-green-600"></i>
+                                </div>
+                                <div class="ml-4">
+                                    <p class="text-gray-600 text-sm">Total Found Items</p>
+                                    <h3 class="text-xl font-bold text-gray-800" id="total-found"></h3>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="bg-purple-50 p-4 rounded-lg">
+                            <div class="flex items-center">
+                                <div class="bg-purple-100 p-3 rounded-full">
+                                    <i class="fas fa-trophy text-purple-600"></i>
+                                </div>
+                                <div class="ml-4">
+                                    <p class="text-gray-600 text-sm">Success Rate</p>
+                                    <h3 class="text-xl font-bold text-gray-800" id="success-rate"></h3>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Search & Filter Section -->
+                <div class="card p-6 mb-8">
+                    <div class="flex flex-col md:flex-row md:items-center md:justify-between">
+                        <h1 class="text-2xl font-bold text-gray-800 mb-4 md:mb-0">Find Found Items</h1>
+                        
+                        <div class="flex-1 md:ml-8 md:max-w-md">
+                            <div class="relative">
+                                <input type="text" placeholder="Search found items..." class="w-full border border-gray-300 rounded-lg py-3 px-4 pl-10 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Advanced Filters -->
+                    <div class="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4">
+                    </div>
+                </div>
+                
+                <!-- Results Count -->
+                <div class="flex items-center justify-between mb-4">
+                    <p class="text-gray-600"><span class="font-medium"></span> found items found</p>
+                </div>
+                
+                <!-- Found Items Grid -->
+                <div id="foundItemsContainer" class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                    <!-- Items will be loaded here dynamically -->
+                </div>
+            </main>
+        </div>
+    </div>
+    
+    <!-- Item Detail Modal -->
+    <div id="itemDetailModal" class="modal">
+        <div class="modal-content p-0">
+            <button class="modal-close">
+                <i class="fas fa-times"></i>
+            </button>
+            
+            <div class="detail-images-container">
+                <div id="detailImages" class="flex overflow-x-auto gap-4 pb-4" style="height: 320px">
+                    <!-- Images will be inserted here dynamically -->
+                </div>
+                <div id="noImagesMessage" class="hidden w-full bg-gray-100 flex items-center justify-center" style="height: 320px">
+                    <i class="fas fa-image text-gray-400 text-3xl"></i>
+                </div>
+            </div>
+            
+            <div class="p-6">
+                <div class="flex justify-between items-start mb-4">
+                    <h2 id="detailTitle" class="text-2xl font-bold text-gray-800">MacBook Pro 13"</h2>
+                    <span id="detailStatus" class="badge-status found-status">Found</span>
+                </div>
+                
+                <div class="detail-info-grid my-6">
+                    <div class="info-item">
+                        <span class="info-label">Category</span>
+                        <span id="detailCategory" class="info-value"><i class="fas fa-laptop-code mr-2 text-blue-500"></i>Electronics</span>
+                    </div>
+                    
+                    <div class="info-item">
+                        <span class="info-label">Date Found</span>
+                        <span id="detailDate" class="info-value"><i class="fas fa-calendar-alt mr-2 text-blue-500"></i>April 1, 2025</span>
+                    </div>
+                    
+                    <div class="info-item">
+                        <span class="info-label">Location Found</span>
+                        <span id="detailLocation" class="info-value"><i class="fas fa-map-marker-alt mr-2 text-blue-500"></i>Hartley Library, 2nd floor</span>
+                    </div>
+                    
+                    <div class="info-item">
+                        <span class="info-label">Report ID</span>
+                        <span id="detailReportId" class="info-value"><i class="fas fa-hashtag mr-2 text-blue-500"></i>F-2025-0042</span>
+                    </div>
+                </div>
+                
+                <div class="mb-6">
+                    <h3 class="text-md font-semibold mb-2">Description</h3>
+                    <p id="detailDescription" class="text-gray-700">
+                        Silver MacBook Pro 13\" with a blue sleeve case. Found on a study desk in the quiet zone of Hartley Library, 2nd floor, near the window seats. No visible damage. The laptop was found closed and powered off. A University of Southampton sticker is on the top.
+                    </p>
+                </div>
+                
+                <div class="border-t border-gray-200 pt-4 pb-2">
+                    <h3 class="text-md font-semibold mb-3">Reporter</h3>
+                    <div class="flex items-center">
+                        <img id="detailReporterImage" src="https://randomuser.me/api/portraits/women/44.jpg" alt="User" class="w-10 h-10 rounded-full">
+                        <div class="ml-3">
+                            <p id="detailReporterName" class="font-medium"></p>
+                            <p class="text-sm text-gray-500"></p>
+                            <div class="hidden" id="detailPhone"></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="flex justify-between mt-6">                    
+                    <a href=# class="action-button primary-action">
+                        <i class="fas fa-hand-paper mr-2"></i>
+                        Claim as Mine
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Contact Info Modal -->
+    <div id="contactModal" class="modal">
+        <div class="modal-content p-6" style="max-width: 400px;">
+            <button id="contactClose" class="modal-close">
+                <i class="fas fa-times"></i>
+            </button>
+            
+            <h2 class="text-xl font-bold mb-4">Contact Reporter</h2>
+            
+            <div class="space-y-4 mb-6">
+                <div class="info-item">
+                    <span class="info-label">Name</span>
+                    <span id="contactName" class="info-value"></span>
+                </div>
+                
+                <div class="info-item">
+                    <span class="info-label">Email</span>
+                    <span id="contactEmail" class="info-value"></span>
+                </div>
+                
+                <div class="info-item">
+                    <span class="info-label">Phone</span>
+                    <span id="contactPhone" class="info-value"></span>
+                </div>
+            </div>
+            
+            <button id="contactOk" class="btn-primary w-full">
+                OK
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // Toggle sidebar
+        const sidebar = document.getElementById('sidebar');
+        const mainContent = document.getElementById('main-content');
+        const toggleSidebarBtn = document.getElementById('toggleSidebar');
+        
+        toggleSidebarBtn.addEventListener('click', function() {
+            if (sidebar.classList.contains('sidebar-expanded')) {
+                sidebar.classList.remove('sidebar-expanded');
+                sidebar.classList.add('sidebar-collapsed');
+                mainContent.classList.remove('ml-64');
+                mainContent.classList.add('ml-20');
+                toggleSidebarBtn.innerHTML = '<i class="fas fa-chevron-right"></i>';
+            } else {
+                sidebar.classList.remove('sidebar-collapsed');
+                sidebar.classList.add('sidebar-expanded');
+                mainContent.classList.remove('ml-20');
+                mainContent.classList.add('ml-64');
+                toggleSidebarBtn.innerHTML = '<i class="fas fa-chevron-left"></i>';
+            }
+        });
+        
+        // Filter chips
+        const filterChips = document.querySelectorAll('.filter-chip');
+        
+        filterChips.forEach(chip => {
+            chip.addEventListener('click', function() {
+                // Remove active class from all chips
+                filterChips.forEach(c => c.classList.remove('active'));
+                
+                // Add active class to clicked chip
+                this.classList.add('active');
+                
+                // Get the category to filter by
+                const category = this.dataset.category;
+                
+                // Filter items based on category
+                const itemCards = document.querySelectorAll('.item-card');
+                
+                itemCards.forEach(card => {
+                    if (category === 'all' || card.dataset.category === category) {
+                        card.style.display = 'block';
+                    } else {
+                        card.style.display = 'none';
+                    }
+                });
+            });
+        });
+        
+        // Item Detail Modal functionality
+        const modal = document.getElementById('itemDetailModal');
+        const viewDetailsBtns = document.querySelectorAll('.view-details-btn');
+        const modalClose = document.querySelector('.modal-close');
+        
+        // Open modal with item details
+        viewDetailsBtns.forEach(btn => {
+            btn.addEventListener('click', function() {
+                const itemId = this.dataset.id;
+                const item = itemsData[itemId];
+                
+                // Populate modal with item data
+                // document.getElementById('detailImage').src = item.image;
+                document.getElementById('detailTitle').textContent = item.title;
+                document.getElementById('detailCategory').innerHTML = `<i class="${item.icon} mr-2 text-blue-500"></i>${item.category}`;
+                document.getElementById('detailDate').innerHTML = `<i class="fas fa-calendar-alt mr-2 text-blue-500"></i>${item.date}`;
+                document.getElementById('detailLocation').innerHTML = `<i class="fas fa-map-marker-alt mr-2 text-blue-500"></i>${item.location}`;
+                document.getElementById('detailReportId').innerHTML = `<i class="fas fa-hashtag mr-2 text-blue-500"></i>${item.reportId}`;
+                document.getElementById('detailDescription').textContent = item.description;
+                document.getElementById('detailReporterName').textContent = item.reporter.name;
+                document.getElementById('detailReporterImage').src = item.reporter.image;
+                
+                // Show modal
+                modal.classList.add('active');
+                document.body.style.overflow = 'hidden';
+                
+                // Animate modal content
+                setTimeout(() => {
+                    modal.querySelector('.modal-content').style.opacity = '1';
+                    modal.querySelector('.modal-content').style.transform = 'translateY(0)';
+                }, 50);
+            });
+        });
+        
+        // Close modal
+        modalClose.addEventListener('click', function() {
+            closeModal();
+        });
+        
+        // Close modal when clicking outside of content
+        modal.addEventListener('click', function(e) {
+            if (e.target === modal) {
+                closeModal();
+            }
+        });
+        
+        // Close modal with escape key
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape' && modal.classList.contains('active')) {
+                closeModal();
+            }
+        });
+        
+        function closeModal() {
+            modal.querySelector('.modal-content').style.opacity = '0';
+            modal.querySelector('.modal-content').style.transform = 'translateY(20px)';
+            
+            setTimeout(() => {
+                modal.classList.remove('active');
+                document.body.style.overflow = 'auto';
+            }, 300);
+        }
+
+        // Contact Modal functionality
+        const contactModal = document.getElementById('contactModal');
+        const contactOk = document.getElementById('contactOk');
+        const contactClose = document.getElementById('contactClose');
+
+
+        // Handle Claim button click
+        document.querySelector('.primary-action').addEventListener('click', function(e) {
+            e.preventDefault();
+            // Get reporter info from the detail modal
+            const reporterName = document.getElementById('detailReporterName').textContent;
+            const reporterEmail = document.querySelector('#itemDetailModal .text-gray-500').textContent;
+            const reporterPhone = document.getElementById('detailPhone').textContent || 'Not provided';
+
+            // Populate contact modal
+            document.getElementById('contactName').textContent = reporterName;
+            document.getElementById('contactEmail').textContent = reporterEmail;
+            document.getElementById('contactPhone').textContent = reporterPhone;
+
+            // Show contact modal
+            contactModal.classList.add('active');
+            document.body.style.overflow = 'hidden';
+            
+            setTimeout(() => {
+                contactModal.querySelector('.modal-content').style.opacity = '1';
+                contactModal.querySelector('.modal-content').style.transform = 'translateY(0)';
+            }, 50);
+        });
+
+        // Close contact modal
+        contactOk.addEventListener('click', function() {
+            contactModal.classList.remove('active');
+            document.body.style.overflow = 'auto';
+        });
+        contactClose.addEventListener('click', function() {
+            contactModal.classList.remove('active');
+            document.body.style.overflow = 'auto';
+        });
+    </script>
+
+    <!-- Check if a user is logged in, Update user profile -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js";
+        import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js";
+        import { getFirestore, doc, getDoc, collection, getDocs, query, orderBy } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js"
+
+        // Firebase config
+        const firebaseConfig = {
+            apiKey: "AIzaSyBBTdHvzVHcGhObHG-WbLyumrgRhDgZRJE",
+            authDomain: "lostfounditemmanagement.firebaseapp.com",
+            projectId: "lostfounditemmanagement",
+            storageBucket: "lostfounditemmanagement.firebasestorage.app",
+            messagingSenderId: "126221630339",
+            appId: "1:126221630339:web:bf4463bd1fb91d023714b6",
+            measurementId: "G-6PZ5MTYJLQ"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        let allFoundItems = [];
+        let allLostItems = [];
+        
+        // Check if a user is logged in
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                // User is logged in, proceed with displaying content
+                console.log("✅ User is signed in:", user.email);
+            
+                // Get user profile data from Firestore
+                try {
+                    const userRef = doc(db, "users", user.uid);
+                    const userDoc = await getDoc(userRef);
+
+                    if (userDoc.exists()) {
+                        const userData = userDoc.data();
+
+                        // Update header user profile
+                        const usernameElement = document.getElementById("username");
+                        const profilePicElement = document.getElementById('profile-pic');
+
+                        // Set username from Firestore
+                        // usernameElement.textContent = userData.username || 'Anonymous';
+                        usernameElement.textContent = userData.username || 'Anonymous';
+
+                        // Set profile picture with fallback
+                        profilePicElement.src = userData.photoURL || 'https://static.vecteezy.com/system/resources/thumbnails/003/031/764/small/blue-wide-background-with-linear-blurred-gradient-free-vector.jpg';
+
+                        // // Update welcome message if needed
+                        // const welcomeHeading = document.querySelector('h1');
+                        // if (welcomeHeading) {
+                        //     welcomeHeading.textContent = `Welcome back, ${userData.username || 'User'}!`;
+                        // }
+                    } else {
+                        // User is not logged in, redirect to login page
+                        console.log("⚠️ User data not found in Firestore.");
+                        setDefaultUserInfo();
+                    }
+
+                } catch (error) {
+                    console.error("❌ Error fetching user data:", error);
+                    setDefaultUserInfo()
+                }        
+            } else {
+                // User not logged in, redirect to login
+                console.log("🚫 No user is logged in.")
+                window.location.href = 'auth.html';
+            }
+        });
+
+        async function loadFoundItems() {
+            try {
+                const foundItemsContainer = document.getElementById('foundItemsContainer');
+                foundItemsContainer.innerHTML = '<p class="text-gray-600">Loading items...</p>';
+
+                const q = query(collection(db, 'foundItems'), orderBy('createdAt', 'desc'));
+                const querySnapshot = await getDocs(q);
+                allFoundItems = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+                if (querySnapshot.empty) {
+                    foundItemsContainer.innerHTML = '<p class="text-gray-600">No found items found</p>';
+                    return;
+                }
+
+                renderFoundItems(allFoundItems);
+                await loadStatistics();
+
+            } catch (error) {
+                console.error("Error loading found items:", error);
+                foundItemsContainer.innerHTML = '<p class="text-red-500">Error loading items. Please try again later.</p>';
+            }
+        }
+
+        // Search functionality for found items
+        function setupSearch() {
+            const searchInput = document.querySelector('input[type="text"]');
+            searchInput.addEventListener('input', (e) => {
+                const searchTerm = e.target.value.toLowerCase();
+                const filtered = allFoundItems.filter(item => {
+                    return item.itemName.toLowerCase().includes(searchTerm) ||
+                        item.locationFound.toLowerCase().includes(searchTerm) ||
+                        item.description?.toLowerCase().includes(searchTerm);
+                });
+                renderFoundItems(filtered);
+            });
+        }
+
+        // Statistics calculation
+        async function loadStatistics() {
+            try {
+                // Get lost items stats
+                const lostQuery = await getDocs(collection(db, 'lostItems'));
+                const totalLost = lostQuery.size;
+                const resolvedLost = lostQuery.docs.filter(doc => doc.data().status === 'resolved').length;
+
+                // Get found items stats
+                const foundQuery = await getDocs(collection(db, 'foundItems'));
+                const totalFound = foundQuery.size;
+                const resolvedFound = foundQuery.docs.filter(doc => doc.data().status === 'resolved').length;
+
+                // Calculate success rate
+                const totalItems = totalLost + totalFound;
+                const resolvedItems = resolvedLost + resolvedFound;
+                const successRate = totalItems > 0 
+                    ? Math.round((resolvedItems / totalItems) * 100)
+                    : 0;
+
+                // Update dashboard numbers
+                document.getElementById('total-lost').textContent = totalLost;
+                document.getElementById('total-found').textContent = totalFound;
+                document.getElementById('success-rate').textContent = `${successRate}%`;
+
+            } catch (error) {
+                console.error("Error loading statistics:", error);
+            }
+        }
+
+        // Render found items function
+        function renderFoundItems(items) {
+            const foundItemsContainer = document.getElementById('foundItemsContainer');
+            let itemsHTML = '';
+
+            items.forEach(item => {
+            itemsHTML += `
+                <div class="item-card bg-white" data-category="${item.itemCategory}">
+                    <div class="relative">
+                        ${item.images && item.images.length > 0 ? 
+                            `<div class="flex overflow-x-auto" style="height: 200px;">
+                                ${item.images.map(image => `
+                                    <img src="${image}" alt="${item.itemName}" class="h-full w-auto object-cover flex-none">
+                                `).join('')}
+                            </div>` :
+                            `<div class="w-full item-image-placeholder bg-gray-100 flex items-center justify-center" style="height: 200px;">
+                                <i class="fas fa-image text-gray-400 text-3xl"></i>
+                            </div>`
+                        }
+                        <span class="badge badge-found absolute top-4 right-4">Found</span>
+                    </div>
+                
+                    <div class="p-4">
+                        <h3 class="text-lg font-bold text-gray-800">${item.itemName}</h3>
+                        <p class="text-gray-600 text-sm mt-1">Found at ${item.locationFound}</p>
+                        <div class="flex items-center mt-3">
+                            <i class="fas fa-calendar-alt text-blue-500 mr-2"></i>
+                            <p class="text-gray-500 text-sm">${item.dateFound?.toDate().toLocaleDateString()}</p>
+                        </div>
+                        
+                        <div class="flex justify-between mt-4">
+                            <button class="text-blue-600 font-medium text-sm hover:underline view-details-btn" 
+                                data-id="${item.id}" 
+                                data-resolved="${item.resolved}">
+                                View Details
+                            </button>
+                            
+                            <div class="flex items-center">
+                                <span class="text-xs ${item.resolved ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'} px-2 py-1 rounded-full">
+                                    ${item.resolved ? 'Resolved' : 'Active'}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        });
+
+            foundItemsContainer.innerHTML = itemsHTML;
+            updateResultsCount(items.length);
+            setupDetailButtons();
+        }
+
+        function setupDetailButtons() {
+            document.querySelectorAll('.view-details-btn').forEach(btn => {
+                btn.addEventListener('click', async function() {
+                    const itemId = this.dataset.id;
+                    const isResolved = this.dataset.resolved === 'true';
+                    showItemDetail(itemId, 'found', isResolved);
+                });
+            });
+        }
+
+        function updateResultsCount(count) {
+            const countElement = document.querySelector('p.text-gray-600 span');
+            if (countElement) {
+                countElement.textContent = count;
+            }
+        }
+
+        async function showItemDetail(itemId, type, isResolved) {
+            try {
+                const docRef = doc(db, `${type}Items`, itemId);
+                const docSnap = await getDoc(docRef);
+
+                if (docSnap.exists()) {
+                    const item = { id: docSnap.id, ...docSnap.data() };
+                    const modal = document.getElementById('itemDetailModal');
+                    const claimButton = document.querySelector('.primary-action');
+                    const imagesContainer = document.getElementById('detailImages');
+                    const noImagesMessage = document.getElementById('noImagesMessage');
+
+                    // Clear previous images
+                    imagesContainer.innerHTML = '';
+                    noImagesMessage.classList.add('hidden');
+
+                    // Add new images
+                    if (item.images && item.images.length > 0) {
+                        item.images.forEach(image => {
+                            const img = document.createElement('img');
+                            img.src = image;
+                            img.alt = item.itemName;
+                            img.className = 'h-full w-auto object-cover flex-none';
+                            imagesContainer.appendChild(img);
+                        });
+                    } else {
+                        noImagesMessage.classList.remove('hidden');
+                    }
+
+                    // Get reporter data from Firestore
+                    let reporterName = 'Anonymous';
+                    let reporterEmail = '';
+                    let reporterImage = 'https://static.vecteezy.com/system/resources/thumbnails/003/031/764/small/blue-wide-background-with-linear-blurred-gradient-free-vector.jpg';
+                    let reporterPhone = 'Not provided';
+
+                    if (item.userRef) {
+                        try{
+                            const userDoc = await getDoc(item.userRef);
+                            if (userDoc.exists()) {
+                                const userData = userDoc.data();
+                                reporterName = userData.username || 'Anonymous';
+                                reporterEmail = userData.email || '';
+                                reporterImage = userData.photoURL || reporterImage;
+
+                                reporterPhone = userData.phone || 'Not provided';
+                                document.getElementById('detailPhone').textContent = reporterPhone;
+                            }
+                        } catch (error) {
+                            console.log("Couldn't fetch reporter details:", error);
+                        }
+                    }
+
+                    // Format category with capital first letter
+                    const category = item.itemCategory;
+                    const formattedCategory = category.charAt(0).toUpperCase() + category.slice(1).toLowerCase();
+
+                    // Populate all modal fields
+                    // document.getElementById('detailImage').src = item.images?.[0] || '';
+                    document.getElementById('detailTitle').textContent = item.itemName;
+                    document.getElementById('detailCategory').innerHTML = `<i class="fas fa-${getCategoryIcon(item.itemCategory)} mr-2 text-blue-500"></i>${formattedCategory}`;
+                    document.getElementById('detailDate').innerHTML = `<i class="fas fa-calendar-alt mr-2 text-blue-500"></i>${item.dateFound?.toDate().toLocaleDateString()}`;
+                    document.getElementById('detailLocation').innerHTML = `<i class="fas fa-map-marker-alt mr-2 text-blue-500"></i>${item.locationFound}`;
+                    document.getElementById('detailReportId').innerHTML = `<i class="fas fa-hashtag mr-2 text-blue-500"></i>${docSnap.id}`;
+                    document.getElementById('detailDescription').textContent = item.description;
+
+                    // Update reporter information
+                    document.getElementById('detailReporterName').textContent = reporterName;
+                    document.getElementById('detailReporterImage').src = reporterImage;
+                    document.querySelector('#itemDetailModal .text-gray-500').textContent = reporterEmail || 'Email not available';
+
+                    // Toggle claim button
+                    claimButton.style.display = isResolved ? 'none' : 'flex';
+
+                    // Show modal
+                    modal.classList.add('active');
+                    document.body.style.overflow = 'hidden';
+                    
+                    setTimeout(() => {
+                        modal.querySelector('.modal-content').style.opacity = '1';
+                        modal.querySelector('.modal-content').style.transform = 'translateY(0)';
+                    }, 50);
+                }
+            } catch (error) {
+                console.error('Error showing item detail:', error);
+            }
+        }
+
+        // Helper function for category icons
+        function getCategoryIcon(category) {
+            const icons = {
+                'electronics': 'laptop-code',
+                'accessories': 'tshirt',
+                'books': 'book',
+                'cards': 'id-card',
+                'keys': 'key',
+                'other': 'ellipsis-h'
+            };
+            return icons[category.toLowerCase()] || 'tag';
+        }
+
+        // Initialize everything when authenticated
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                loadFoundItems();
+                setupSearch();
+            }
+        });
+
+        function setDefaultUserInfo() {
+            document.getElementById("username").textContent = 'Anonymous';
+            document.getElementById("profile-pic").src = 'https://static.vecteezy.com/system/resources/thumbnails/003/031/764/small/blue-wide-background-with-linear-blurred-gradient-free-vector.jpg';
+        }
+
+        // Logout handler
+        document.getElementById("logout").addEventListener("click", (e) => {
+            e.preventDefault(); // prevent default link behavior
+            signOut(auth).then(() => {
+                window.location.href = "auth.html";
+            }).catch((error) => {
+                console.error("❌ Logout Error:", error);
+            });
+        });
+    </script>
+
+    <!-- <script src="notifications.js"></script> -->
+</body>
+</html>

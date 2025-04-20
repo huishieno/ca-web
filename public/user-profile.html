@@ -1,0 +1,597 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SotonFind - User Profile</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f5f7fb;
+            overflow-x: hidden;
+        }
+        
+        /* Sidebar styles */
+        .sidebar {
+            height: 100vh;
+            background: linear-gradient(180deg, #4f46e5 0%, #3b82f6 100%);
+            transition: all 0.3s;
+            box-shadow: 4px 0 10px rgba(0, 0, 0, 0.05);
+            position: fixed;
+            left: 0;
+            z-index: 30;
+        }
+        
+        .sidebar-collapsed {
+            width: 80px;
+        }
+        
+        .sidebar-expanded {
+            width: 250px;
+        }
+        
+        .sidebar-link {
+            color: white;
+            border-radius: 8px;
+            transition: all 0.2s;
+            margin: 5px 12px;
+        }
+        
+        .sidebar-link:hover, .sidebar-link.active {
+            background-color: rgba(255, 255, 255, 0.2);
+        }
+        
+        /* Header styles */
+        .header {
+            background-color: white;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+        }
+        
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid #e5e7eb;
+        }
+        
+        /* Card styles */
+        .card {
+            background-color: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+            transition: all 0.3s;
+        }
+        
+        /* Button styles */
+        .btn-primary {
+            background-color: #3b82f6;
+            color: white;
+            border-radius: 8px;
+            padding: 0.75rem 1.5rem;
+            font-weight: 600;
+            transition: all 0.3s;
+            box-shadow: 0 4px 6px -1px rgba(59, 130, 246, 0.2);
+        }
+        
+        .btn-primary:hover {
+            background-color: #2563eb;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 15px -3px rgba(59, 130, 246, 0.3);
+        }
+        
+        .btn-secondary {
+            background-color: white;
+            color: #374151;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 0.75rem 1.5rem;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+        
+        .btn-secondary:hover {
+            background-color: #f9fafb;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+        }
+        
+        /* Animation */
+        .fade-in {
+            animation: fadeIn 0.5s ease-in-out;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        /* Sidebar text transitions */
+        .sidebar-text {
+            transition: opacity 0.3s, width 0.3s;
+            white-space: nowrap;
+            overflow: hidden;
+        }
+        
+        .sidebar-collapsed .sidebar-text {
+            opacity: 0;
+            width: 0;
+            display: none;
+        }
+        
+        .sidebar-collapsed .link-text {
+            opacity: 0;
+            width: 0;
+            display: none;
+        }
+        
+        /* Profile specific styles */
+        .profile-image-container {
+            position: relative;
+            width: 150px;
+            height: 150px;
+            margin: 0 auto;
+        }
+        
+        .profile-image {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 4px solid #e5e7eb;
+        }
+        
+        .image-upload-overlay {
+            position: absolute;
+            bottom: 0;
+            right: 0;
+            background-color: #3b82f6;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+            transition: all 0.2s;
+        }
+        
+        .image-upload-overlay:hover {
+            background-color: #2563eb;
+            transform: scale(1.1);
+        }
+        
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+        
+        .form-label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: #4b5563;
+        }
+        
+        .form-input {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            transition: all 0.2s;
+        }
+        
+        .form-input:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.25);
+        }
+        
+        .read-only {
+            background-color: #f9fafb;
+            cursor: not-allowed;
+        }
+    </style>
+</head>
+<body>
+    <div class="flex h-screen">
+        <!-- Sidebar -->
+        <div id="sidebar" class="sidebar sidebar-expanded">
+            <!-- Logo -->
+            <div class="p-2 pt-6 pl-4 flex items-center justify-between">
+                <div class="flex items-center">
+                    <div class="h-10 w-10 flex items-center justify-center bg-white rounded-xl">
+                        <i class="fas fa-search text-blue-600 text-xl"></i>
+                    </div>
+                    <h1 class="ml-3 text-white text-xl font-bold sidebar-text">SotonFind</h1>
+                </div>
+                <button id="toggleSidebar" class="text-white hover:bg-blue-700 rounded-full p-2">
+                    <i class="fas fa-chevron-left"></i>
+                </button>
+            </div>
+            
+            <!-- Menu Links -->
+            <div class="mt-8">
+                <a href="lost-items.html" class="sidebar-link flex items-center py-3 px-4 mb-2">
+                    <i class="fas fa-search-minus text-xl w-8"></i>
+                    <span class="ml-3 link-text">Lost Items</span>
+                </a>
+                
+                <a href="found-items.html" class="sidebar-link flex items-center py-3 px-4 mb-2">
+                    <i class="fas fa-search-plus text-xl w-8"></i>
+                    <span class="ml-3 link-text">Found Items</span>
+                </a>
+                
+                <a href="my-reports.html" class="sidebar-link flex items-center py-3 px-4 mb-2">
+                    <i class="fas fa-clipboard-list text-xl w-8"></i>
+                    <span class="ml-3 link-text">My Reports</span>
+                </a>
+
+                <!-- <a href="my-claims.html" class="sidebar-link flex items-center py-3 px-4 mb-2">
+                    <i class="fas fa-clipboard-check text-xl w-8"></i>
+                    <span class="ml-3 link-text">My Claims</span>
+                </a> -->
+
+                <div class="border-t border-blue-400 my-4 opacity-30"></div>
+                
+                <a href="user-profile.html" class="sidebar-link active flex items-center py-3 px-4 mb-2">
+                    <i class="fas fa-user text-xl w-8"></i>
+                    <span class="ml-3 link-text">My Profile</span>
+                </a>
+
+                <a href="auth.html" class="sidebar-link flex items-center py-3 px-4 mb-2">
+                    <i class="fas fa-sign-out-alt text-xl w-8"></i>
+                    <span class="ml-3 link-text">Logout</span>
+                </a>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div id="main-content" class="flex-1 ml-64 transition-all duration-300">
+            <!-- Header -->
+            <header class="header w-full flex items-center justify-between px-6 py-4 top-0 z-20">
+                <div class="flex pr-4 items-center">
+                    <h2 class="text-xl font-bold text-gray-800">My Profile</h2>
+                </div>
+                
+                <div class="flex items-center space-x-4">
+                    <a href="create-report.html" class="btn-primary py-2 px-4 flex items-center">
+                        <i class="fas fa-plus-circle mr-2"></i>
+                        <span>Create Report</span>
+                    </a>                
+                    
+                    <a href="user-profile.html">
+                        <div class="flex items-center bg-gray-100 hover:bg-gray-200 rounded-full p-1 pl-3 cursor-pointer">
+                            <span id="username" class="text-sm font-medium mr-2"></span>
+                            <img id="profile-pic" src="https://static.vecteezy.com/system/resources/thumbnails/003/031/764/small/blue-wide-background-with-linear-blurred-gradient-free-vector.jpg" alt="User" class="user-avatar">
+                        </div>
+                    </a>
+                </div>
+            </header>
+
+            <!-- Page Content -->
+            <main class="pt-8 px-6 pb-8 fade-in">
+                <div class="max-w-3xl mx-auto">
+                    <!-- Profile Card -->
+                    <div class="card p-8 mb-8">
+                        <h2 class="text-2xl font-bold text-gray-800 mb-6 text-center">User Profile</h2>
+                        
+                        <!-- Profile Image Section -->
+                        <div class="profile-image-container mb-8">
+                            <img id="profile-pic-display" src="https://static.vecteezy.com/system/resources/thumbnails/003/031/764/small/blue-wide-background-with-linear-blurred-gradient-free-vector.jpg" alt="Profile" class="profile-image">
+                            <label for="profile-image-upload" class="image-upload-overlay">
+                                <i class="fas fa-camera text-white"></i>
+                            </label>
+                            <input type="file" id="profile-image-upload" class="hidden" accept="image/*">
+                        </div>
+                        
+                        <!-- Profile Form -->
+                        <form id="profile-form">
+                            <!-- Username -->
+                            <div class="form-group">
+                                <label for="username" class="form-label">Username</label>
+                                <div class="relative">
+                                    <input type="text" id="username-display" name="username" class="form-input pr-10" value="User">
+                                    <button type="button" class="absolute right-3 top-3 text-blue-500">
+                                        <i class="fas fa-pencil-alt"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <!-- Email -->
+                            <div class="form-group">
+                                <label for="email" class="form-label">Email Address</label>
+                                <input type="email" id="email" name="email" class="form-input read-only" value="john.doe@soton.ac.uk" readonly>
+                            </div>
+                            
+                            <!-- Password -->
+                            <div class="form-group">
+                                <label for="password" class="form-label">Password</label>
+                                <div class="flex">
+                                    <input type="password" id="password" name="password" class="form-input read-only" value="••••••••" readonly>
+                                    <!-- <button type="button" class="btn-secondary ml-3 py-2" id="reset-password-btn">Reset Password</button> -->
+                                </div>
+                            </div>
+                            
+                            <!-- Phone Number -->
+                            <div class="form-group">
+                                <label for="phone" class="form-label">Phone Number</label>
+                                <div class="relative">
+                                    <input type="tel" id="phone" name="phone" class="form-input pr-10" value="+44 7123 456789">
+                                    <button type="button" class="absolute right-3 top-3 text-blue-500">
+                                        <i class="fas fa-pencil-alt"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <!-- Save Button -->
+                            <div class="flex justify-end mt-8">
+                                <button type="submit" class="btn-primary py-3 px-6">
+                                    <i class="fas fa-save mr-2"></i>
+                                    Save Changes
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- Password Reset Modal -->
+    <div id="reset-password-modal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center">
+        <div class="bg-white rounded-lg p-6 w-full max-w-md">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-xl font-bold text-gray-800">Reset Password</h3>
+                <button id="close-modal" class="text-gray-400 hover:text-gray-600">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <form id="reset-password-form">
+                <div class="form-group">
+                    <label for="current-password" class="form-label">Current Password</label>
+                    <input type="password" id="current-password" name="current-password" class="form-input" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="new-password" class="form-label">New Password</label>
+                    <input type="password" id="new-password" name="new-password" class="form-input" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="confirm-password" class="form-label">Confirm New Password</label>
+                    <input type="password" id="confirm-password" name="confirm-password" class="form-input" required>
+                </div>
+                
+                <div class="flex justify-end mt-6">
+                    <button type="button" id="cancel-reset" class="btn-secondary mr-3">Cancel</button>
+                    <button type="submit" class="btn-primary">Reset Password</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Sidebar toggle functionality
+        const sidebar = document.getElementById('sidebar');
+        const mainContent = document.getElementById('main-content');
+        const toggleBtn = document.getElementById('toggleSidebar');
+        
+        toggleBtn.addEventListener('click', () => {
+            if (sidebar.classList.contains('sidebar-expanded')) {
+                // Collapse sidebar
+                sidebar.classList.remove('sidebar-expanded');
+                sidebar.classList.add('sidebar-collapsed');
+                mainContent.classList.remove('ml-64');
+                mainContent.classList.add('ml-20');
+                toggleBtn.innerHTML = '<i class="fas fa-chevron-right"></i>';
+            } else {
+                // Expand sidebar
+                sidebar.classList.remove('sidebar-collapsed');
+                sidebar.classList.add('sidebar-expanded');
+                mainContent.classList.remove('ml-20');
+                mainContent.classList.add('ml-64');
+                toggleBtn.innerHTML = '<i class="fas fa-chevron-left"></i>';
+            }
+        });
+        
+        // Profile image upload preview
+        const profileImageUpload = document.getElementById('profile-image-upload');
+        const profileImage = document.querySelector('.profile-image');
+        
+        profileImageUpload.addEventListener('change', function(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    profileImage.src = e.target.result;
+                }
+                reader.readAsDataURL(file);
+            }
+        });
+        
+        // Password reset modal functionality
+        const resetPasswordBtn = document.getElementById('reset-password-btn');
+        const resetPasswordModal = document.getElementById('reset-password-modal');
+        const closeModal = document.getElementById('close-modal');
+        const cancelReset = document.getElementById('cancel-reset');
+        
+        resetPasswordBtn.addEventListener('click', () => {
+            resetPasswordModal.classList.remove('hidden');
+        });
+        
+        const closeResetModal = () => {
+            resetPasswordModal.classList.add('hidden');
+        };
+        
+        closeModal.addEventListener('click', closeResetModal);
+        cancelReset.addEventListener('click', closeResetModal);
+        
+        // Close modal if clicking outside of it
+        resetPasswordModal.addEventListener('click', (e) => {
+            if (e.target === resetPasswordModal) {
+                closeResetModal();
+            }
+        });
+        
+        // Form submission prevention (for demo)
+        document.getElementById('profile-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            alert('Profile updated successfully!');
+        });
+        
+        document.getElementById('reset-password-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            alert('Password reset successfully!');
+            closeResetModal();
+        });
+    </script>
+
+    <!-- Add this script after the existing Firebase imports -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js";
+        import { getAuth, onAuthStateChanged, signOut, updatePassword, reauthenticateWithCredential, EmailAuthProvider } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js";
+        import { getFirestore, doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyBBTdHvzVHcGhObHG-WbLyumrgRhDgZRJE",
+            authDomain: "lostfounditemmanagement.firebaseapp.com",
+            projectId: "lostfounditemmanagement",
+            storageBucket: "lostfounditemmanagement.appspot.com",
+            messagingSenderId: "126221630339",
+            appId: "1:126221630339:web:bf4463bd1fb91d023714b6",
+            measurementId: "G-6PZ5MTYJLQ"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        let currentUser = null;
+        let selectedFile = null;
+
+        // Update the image upload handler
+        document.getElementById('profile-image-upload').addEventListener('change', (event) => {
+            selectedFile = event.target.files[0];
+            if (selectedFile) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    // Update both profile images
+                    document.getElementById('profile-pic-display').src = e.target.result;
+                    document.getElementById('profile-pic').src = e.target.result;
+                };
+                reader.readAsDataURL(selectedFile);
+            }
+        });
+
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                currentUser = user;
+                // Get user data from Firestore
+                const userRef = doc(db, "users", user.uid);
+                const userDoc = await getDoc(userRef);
+                
+                if (userDoc.exists()) {
+                    const userData = userDoc.data();
+                    // Update UI with Firestore data
+                    console.log("photoURL: ", userData.photoURL);
+                    document.getElementById("profile-pic-display").src = userData.photoURL || 'https://static.vecteezy.com/system/resources/thumbnails/003/031/764/small/blue-wide-background-with-linear-blurred-gradient-free-vector.jpg';
+                    document.getElementById("username-display").value = userData.username || '';
+                    document.getElementById("email").value = user.email;
+                    document.getElementById("phone").value = userData.phone || '';
+                    
+                    // Update profile header
+                    document.getElementById("profile-pic").src = userData.photoURL || 'https://static.vecteezy.com/system/resources/thumbnails/003/031/764/small/blue-wide-background-with-linear-blurred-gradient-free-vector.jpg';
+                    document.getElementById("username").textContent = userData.username || 'Anonymous';
+                }
+            } else {
+                window.location.href = "auth.html";
+            }
+        });
+
+        // Inside the profile form submit event listener
+        document.getElementById('profile-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const username = document.getElementById('username-display').value;
+            const phone = document.getElementById('phone').value;
+
+            try {
+                const updates = {
+                    username: username,
+                    phone: phone
+                };
+
+                // Upload to Cloudinary if new image selected
+                if (selectedFile) {
+                    const formData = new FormData();
+                    formData.append('file', selectedFile);
+                    formData.append('upload_preset', 'user_profile_upload');
+
+                    const response = await fetch('https://api.cloudinary.com/v1_1/dnshn1lze/image/upload', {
+                        method: 'POST',
+                        body: formData
+                    });
+                    
+                    const data = await response.json();
+                    updates.photoURL = data.secure_url;
+                }
+
+                // Update Firestore
+                const userRef = doc(db, "users", currentUser.uid);
+                await updateDoc(userRef, updates);
+                
+                alert('Profile updated successfully!');
+                selectedFile = null;
+            } catch (error) {
+                console.error("Update error:", error);
+                alert('Error updating profile: ' + error.message);
+            }
+        });
+
+        // Password reset functionality
+        document.getElementById('reset-password-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const currentPassword = document.getElementById('current-password').value;
+            const newPassword = document.getElementById('new-password').value;
+            const confirmPassword = document.getElementById('confirm-password').value;
+
+            if (newPassword !== confirmPassword) {
+                alert("Passwords don't match!");
+                return;
+            }
+
+            try {
+                // Reauthenticate user
+                const credential = EmailAuthProvider.credential(
+                    currentUser.email,
+                    currentPassword
+                );
+                
+                await reauthenticateWithCredential(currentUser, credential);
+                await updatePassword(currentUser, newPassword);
+                
+                alert('Password updated successfully!');
+                document.getElementById('reset-password-modal').classList.add('hidden');
+            } catch (error) {
+                console.error("Password update error:", error);
+                alert('Error updating password: ' + error.message);
+            }
+        });
+
+        // Logout handler
+        document.querySelector('a[href="auth.html"]').addEventListener('click', (e) => {
+            e.preventDefault();
+            signOut(auth).then(() => {
+                window.location.href = "auth.html";
+            }).catch((error) => {
+                console.error("Logout Error:", error);
+            });
+        });
+    </script>
+</body>
+</html>

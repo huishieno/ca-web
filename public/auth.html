@@ -1,0 +1,563 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SotonFind - Lost and Found Management System</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        body {
+            background-color: #ffffff;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            overflow-x: hidden;
+        }
+        .auth-container {
+            min-height: 100vh;
+            background-image: url('https://static.vecteezy.com/system/resources/thumbnails/027/450/439/small_2x/open-book-on-a-wooden-table-with-blurred-library-background-eyelevel-view-photo.jpg');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+        }
+        .auth-overlay {
+            background-image: url('https://static.vecteezy.com/system/resources/thumbnails/027/450/439/small_2x/open-book-on-a-wooden-table-with-blurred-library-background-eyelevel-view-photo.jpg');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            z-index: 0;
+            /* Adding a semi-transparent overlay and blur effect */
+            backdrop-filter: blur(8px);
+        }
+        /* Adding an additional dark overlay for better text readability */
+        .auth-overlay::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.4);
+            z-index: -1;
+        }
+        .auth-card {
+            background-color: #ffffff;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+            border-radius: 24px;
+            transition: all 0.3s ease;
+            border: 1px solid rgba(229, 231, 235, 0.5);
+            margin: 2rem auto;
+        }
+        .brand-logo {
+            height: 60px;
+            width: auto;
+        }
+        .divider {
+            display: flex;
+            align-items: center;
+            text-align: center;
+            color: #6b7280;
+        }
+        .divider::before, .divider::after {
+            content: '';
+            flex: 1;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        .divider::before {
+            margin-right: 1em;
+        }
+        .divider::after {
+            margin-left: 1em;
+        }
+        .input-group {
+            position: relative;
+        }
+        .input-icon {
+            position: absolute;
+            left: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #3b82f6;
+        }
+        .input-field {
+            padding-left: 2.5rem;
+            border-radius: 12px;
+            border: 1px solid #e5e7eb;
+            transition: all 0.3s ease;
+            background-color: #f9fafb;
+        }
+        .input-field:focus {
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+            background-color: #ffffff;
+        }
+        .password-toggle {
+            position: absolute;
+            right: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #6b7280;
+            cursor: pointer;
+            z-index: 10;
+        }
+        .password-toggle:hover {
+            color: #3b82f6;
+        }
+        .btn-primary {
+            background-color: #3b82f6;
+            color: white;
+            border-radius: 12px;
+            padding: 0.75rem 1.5rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        .btn-primary:hover {
+            background-color: #2563eb;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);
+        }
+        .btn-google {
+            background-color: white;
+            color: #374151;
+            border: 1px solid #e5e7eb;
+            border-radius: 12px;
+            padding: 0.75rem 1.5rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        .btn-google:hover {
+            background-color: #f9fafb;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        }
+        .auth-tabs {
+            display: flex;
+            border-bottom: 1px solid #e5e7eb;
+            margin-bottom: 2rem;
+        }
+        .auth-tab {
+            padding: 1rem 1.5rem;
+            font-weight: 600;
+            color: #6b7280;
+            border-bottom: 2px solid transparent;
+            transition: all 0.3s ease;
+        }
+        .auth-tab.active {
+            color: #3b82f6;
+            border-bottom: 2px solid #3b82f6;
+        }
+        .auth-tab:hover:not(.active) {
+            color: #4b5563;
+        }
+        /* Animation classes */
+        .fade-in {
+            animation: fadeIn 0.5s ease-in-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .logo-badge {
+            background: linear-gradient(135deg, #4f46e5 0%, #3b82f6 100%);
+            border-radius: 16px;
+            box-shadow: 0 10px 15px -3px rgba(59, 130, 246, 0.3);
+        }
+        .content-wrapper {
+            position: relative;
+            z-index: 1;
+            padding: 2rem 1rem;
+            min-height: 100vh;
+        }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <!-- Authentication Container -->
+        <div class="auth-container">
+            <div class="auth-overlay"></div>
+            
+            <div class="content-wrapper flex items-center justify-center">
+                <!-- Auth Card - Container for both Login and Signup -->
+                <div class="auth-card w-full max-w-md p-8 fade-in">
+                    <!-- Logo and Brand -->
+                    <div class="text-center mb-8">
+                        <div class="inline-flex items-center justify-center logo-badge p-4 mb-4">
+                            <i class="fas fa-search text-white text-3xl"></i>
+                        </div>
+                        <h1 class="text-3xl font-bold text-gray-800">SotonFind</h1>
+                        <p class="text-gray-600 mt-2">Lost and Found Management System</p>
+                    </div>
+                    
+                    <!-- Auth Tabs -->
+                    <div class="auth-tabs">
+                        <button class="auth-tab active flex items-center" onclick="showLogin()">
+                            <i class="fas fa-sign-in-alt mr-2"></i> Login
+                        </button>
+                        <button class="auth-tab flex items-center" onclick="showSignup()">
+                            <i class="fas fa-user-plus mr-2"></i> Sign Up
+                        </button>
+                    </div>
+                    
+                    <!-- Login Form -->
+                    <div id="login-form" class="fade-in">
+                        <form>
+                            <div class="space-y-4">
+                                <div class="input-group">
+                                    <span class="input-icon">
+                                        <i class="fas fa-envelope"></i>
+                                    </span>
+                                    <input type="email" id="login-email" class="input-field w-full p-4 focus:outline-none" placeholder="Email Address" required>
+                                </div>
+                                
+                                <div class="input-group">
+                                    <span class="input-icon">
+                                        <i class="fas fa-lock"></i>
+                                    </span>
+                                    <input type="password" id="login-password" class="input-field w-full p-4 focus:outline-none" placeholder="Password" required>
+                                    <span class="password-toggle" onclick="togglePasswordVisibility('login-password', 'login-password-toggle')">
+                                        <i id="login-password-toggle" class="fas fa-eye"></i>
+                                    </span>
+                                </div>
+                                
+                                <div class="flex items-center justify-between">
+                                    <div class="flex items-center">
+                                        <input type="checkbox" id="remember-me" class="h-4 w-4 text-blue-600 rounded">
+                                        <label for="remember-me" class="ml-2 text-sm text-gray-600">Remember me</label>
+                                    </div>
+                                    <a href="#" class="text-sm text-blue-600 hover:underline">Forgot password?</a>
+                                </div>
+                                
+                                <button type="submit" class="btn-primary w-full flex items-center justify-center">
+                                    <span>Login</span>
+                                    <i class="fas fa-arrow-right ml-2"></i>
+                                </button>
+
+                            </div>
+                        </form>
+                        
+                        <div class="divider my-6">OR</div>
+                        
+                        <button id="google-signin" class="btn-google w-full flex items-center justify-center">
+                            <svg class="h-5 w-5 mr-2" viewBox="0 0 24 24">
+                                <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+                                <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+                                <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
+                                <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+                            </svg>
+                            Continue with Google
+                        </button>
+                    </div>
+                    
+                    <!-- Signup Form (Hidden by default) -->
+                    <div id="signup-form" class="hidden fade-in">
+                        <form>
+                            <div class="space-y-4">
+                                <div class="input-group">
+                                    <span class="input-icon">
+                                        <i class="fas fa-user"></i>
+                                    </span>
+                                    <input type="text" id="signup-name" class="input-field w-full p-4 focus:outline-none" placeholder="Full Name" required>
+                                </div>
+                                
+                                <div class="input-group">
+                                    <span class="input-icon">
+                                        <i class="fas fa-envelope"></i>
+                                    </span>
+                                    <input type="email" id="signup-email" class="input-field w-full p-4 focus:outline-none" placeholder="Email Address" required>
+                                </div>
+                                
+                                <div class="input-group">
+                                    <span class="input-icon">
+                                        <i class="fas fa-phone"></i>
+                                    </span>
+                                    <input type="tel" id="signup-phone" class="input-field w-full p-4 focus:outline-none" placeholder="Phone Number" required>
+                                </div>
+                                
+                                <div class="input-group">
+                                    <span class="input-icon">
+                                        <i class="fas fa-lock"></i>
+                                    </span>
+                                    <input type="password" id="signup-password" class="input-field w-full p-4 focus:outline-none" placeholder="Create Password" required>
+                                    <span class="password-toggle" onclick="togglePasswordVisibility('signup-password', 'signup-password-toggle')">
+                                        <i id="signup-password-toggle" class="fas fa-eye"></i>
+                                    </span>
+                                </div>
+                                
+                                <div class="input-group">
+                                    <span class="input-icon">
+                                        <i class="fas fa-lock"></i>
+                                    </span>
+                                    <input type="password" id="confirm-password" class="input-field w-full p-4 focus:outline-none" placeholder="Confirm Password" required>
+                                    <span class="password-toggle" onclick="togglePasswordVisibility('confirm-password', 'confirm-password-toggle')">
+                                        <i id="confirm-password-toggle" class="fas fa-eye"></i>
+                                    </span>
+                                </div>
+                                
+                                <div class="flex items-center">
+                                    <input type="checkbox" id="terms" class="h-4 w-4 text-blue-600 rounded">
+                                    <label for="terms" class="ml-2 text-sm text-gray-600">
+                                        I agree to the <a href="#" class="text-blue-600 hover:underline">Terms of Service</a> and <a href="#" class="text-blue-600 hover:underline">Privacy Policy</a>
+                                    </label>
+                                </div>
+                                
+                                <button type="submit" class="btn-primary w-full flex items-center justify-center">
+                                    <span>Create Account</span>
+                                    <i class="fas fa-user-plus ml-2"></i>
+                                </button>
+                            </div>
+                        </form>
+                        
+                        <div class="divider my-6">OR</div>
+                        
+                        <button id="google-signup" class="btn-google w-full flex items-center justify-center">
+                            <svg class="h-5 w-5 mr-2" viewBox="0 0 24 24">
+                                <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+                                <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+                                <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
+                                <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+                            </svg>
+                            Sign up with Google
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Simple tab switching functionality
+        function showLogin() {
+            document.getElementById('login-form').classList.remove('hidden');
+            document.getElementById('signup-form').classList.add('hidden');
+            document.querySelectorAll(".auth-tab").forEach(tab => tab.classList.remove("active"));
+            // document.querySelectorAll('.auth-tab')[0].classList.add('active');
+            document.querySelectorAll('.auth-tab')[1].classList.remove('active');
+        }
+        
+        function showSignup() {
+            document.getElementById('login-form').classList.add('hidden');
+            document.getElementById('signup-form').classList.remove('hidden');
+            document.querySelectorAll(".auth-tab").forEach(tab => tab.classList.remove("active"));
+            // document.querySelectorAll('.auth-tab')[0].classList.remove('active');
+            document.querySelectorAll('.auth-tab')[1].classList.add('active');
+        }
+        
+        // Password visibility toggle functionality
+        function togglePasswordVisibility(passwordId, toggleIconId) {
+            const passwordField = document.getElementById(passwordId);
+            const toggleIcon = document.getElementById(toggleIconId);
+            if (passwordField.type === "password") {
+                passwordField.type = "text";
+                toggleIcon.classList.remove("fa-eye");
+                toggleIcon.classList.add("fa-eye-slash");
+            } else {
+                passwordField.type = "password";
+                toggleIcon.classList.remove("fa-eye-slash");
+                toggleIcon.classList.add("fa-eye");
+            }
+        }
+    </script>
+
+    <!-- Firebase Initialization and Google Sign-In -->
+    <script type="module">
+        // Import required functions
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js";
+        import { getAuth, signInWithPopup, GoogleAuthProvider, createUserWithEmailAndPassword, fetchSignInMethodsForEmail, signInWithEmailAndPassword,
+            setPersistence, browserSessionPersistence, browserLocalPersistence, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js";
+        import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js"
+
+        // Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyBBTdHvzVHcGhObHG-WbLyumrgRhDgZRJE",
+            authDomain: "lostfounditemmanagement.firebaseapp.com",
+            projectId: "lostfounditemmanagement",
+            storageBucket: "lostfounditemmanagement.firebasestorage.app",
+            messagingSenderId: "126221630339",
+            appId: "1:126221630339:web:bf4463bd1fb91d023714b6",
+            measurementId: "G-6PZ5MTYJLQ"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const provider = new GoogleAuthProvider();
+        const db = getFirestore(app);
+
+        console.log("🔧 Firebase Auth initialized:", auth);
+
+        // 🧠 MANUAL SIGN-UP HANDLER
+        const signupForm = document.querySelector('#signup-form form');
+        signupForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            // // Get form values
+            const name = document.getElementById('signup-name').value;
+            const email = document.getElementById('signup-email').value.trim().toLowerCase();
+            const phone = document.getElementById('signup-phone').value;
+            const password = document.getElementById('signup-password').value;
+            const confirmPassword = document.getElementById('confirm-password').value;
+            const agreed = document.getElementById('terms').checked;
+
+            // Basic validation
+            if (!agreed) return alert("You must agree to the Terms.");
+            if (password !== confirmPassword) return alert("Passwords do not match.");
+
+            try {
+                // 🔍 Check if email already exists
+                console.log("📧 Checking sign-in methods for email:", email);
+                
+                const signInMethods = await fetchSignInMethodsForEmail(auth, email);
+                console.log("🔍 Sign-in methods for email:", signInMethods);
+
+                if (signInMethods.includes('google.com')) {
+                    alert("This email is linked to Google. Please sign up with Google.");
+                    return;
+                } else if (signInMethods.length > 0) {
+                    // Email is already in use but not associated with Google
+                    console.log("Email is already in use. Methods: ", signInMethods)
+                    alert("Email is already in use! Try logging in instead.")
+                    return;
+                } 
+    
+                // Proceed with sign-up if email is not in use
+                // ✅ Create new account if email is not in use
+                const cred = await createUserWithEmailAndPassword(auth, email, password);
+                const user = cred.user;
+                console.log("✅ New user created:", user.email);
+
+                // Store user data in Firestore (Sign-up)
+                const userRef = doc(db, "users", user.uid);
+                await setDoc(userRef, {
+                    uid: user.uid,
+                    username: name,
+                    email: email,
+                    phone: phone,
+                    photoURL: "https://static.vecteezy.com/system/resources/thumbnails/003/031/764/small/blue-wide-background-with-linear-blurred-gradient-free-vector.jpg",
+                    role: "user",
+                    createdAt: new Date(),
+                });
+
+                alert("(Manual) Account created successfully!");
+                window.location.href = "auth.html";
+            } catch (error) {
+                console.log("❌ Manual Sign-up Error: ", error.message);
+                // alert("Error: " + error.message);
+
+                if (error.code === 'auth/email-already-in-use') {
+                    alert("This email is already in use. Try logging in or use Google sign-in.");
+                } else {
+                    alert("Error: " + error.message);
+                }
+            }
+        });
+
+        // 🧠 MANUAL LOGIN HANDLER (with email method check)
+        const loginForm = document.querySelector('#login-form form');
+        loginForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const email = document.getElementById('login-email').value.trim().toLowerCase();
+            const password = document.getElementById('login-password').value;
+            const rememberMe = document.getElementById('remember-me').checked; // Get checkbox state
+
+            try {
+                // Set session persistence
+                await setPersistence(auth, rememberMe ? browserLocalPersistence : browserSessionPersistence);
+                const userCredential = await signInWithEmailAndPassword(auth, email, password);
+                const user = userCredential.user;
+                console.log("✅ User logged in:", user.email);
+                window.location.href = "lost-items.html";                
+            } catch (error) {
+                console.error("❌ Login Error:", error.message);
+                switch (error.code) {
+                    case "auth/wrong-password":
+                        alert("Incorrect password. Please try again.");
+                        break;
+                    case "auth/invalid-credential":
+                        alert("Invalid credential. Please try again.")
+                        break;
+                    case "auth/user-not-found":
+                        alert("No account found with this email. Sign up instead.");
+                        break;
+                    default:
+                        alert("Login failed: " + error.message);
+                }
+            }
+        });
+
+        document.addEventListener('DOMContentLoaded', () => {
+            document.querySelector('a[href="#"][class*="text-blue-600"]')
+                .addEventListener('click', async (e) => {
+                    e.preventDefault();
+                    const userEmail = document.getElementById('login-email').value || '';
+                    const email = prompt('Enter your email for password reset:', userEmail);
+                    if (!email) return;
+
+                    try {
+                        await sendPasswordResetEmail(auth, email);
+                        alert('Password reset email sent. Check your inbox!');
+                    } catch (error) {
+                        alert(`Error: ${error.message}`);
+                    }
+                });
+        });
+
+        // 🧠 GOOGLE SIGN-IN/SIGN-UP HANDLER
+        async function handleGoogleAuth() {            
+            try {
+                const result = await signInWithPopup(auth, provider);
+                const user = result.user;
+                const isNewUser = result._tokenResponse.isNewUser; // Check if user is new
+                console.log("🙋‍♂️ User:", user.displayName, "📧", user.email);
+                
+                // // 🔍 Check sign-in methods with normalized email
+                // const signInMethods = await fetchSignInMethodsForEmail(auth, user.email);                
+                // console.log("🔍 Sign-in methods:", signInMethods);
+                
+                // Reference to Firestore users collection
+                const userRef = doc(db, "users", user.uid);
+                const userDoc = await getDoc(userRef);
+
+                if (isNewUser) {
+                    // New user: Create Firestore document
+                    await setDoc(userRef, {
+                        uid: user.uid,
+                        username: user.displayName,
+                        email: user.email,
+                        phone: "",
+                        photoURL: user.photoURL,
+                        role: "user",
+                        createdAt: new Date(),
+                    });
+                    alert("Account created successfully!");
+                } else {
+                    // Existing user: Ensure data consistency
+                    const userDoc = await getDoc(userRef);
+                    if (!userDoc.exists()) {
+                        // Handle edge case where Auth exists but Firestore doc doesn't
+                        await setDoc(userRef, { /* ... */ });
+                    }
+                    alert("Welcome back!");
+                }
+                window.location.href = "lost-items.html";
+            } catch (error) {
+                console.error("❌ Google Auth Error:", error.message);
+                alert("Google Sign-In Failed: " + error.message);
+            }
+        }
+
+        // Attach to both Google buttons
+        document.getElementById('google-signin').addEventListener('click', handleGoogleAuth);
+        document.getElementById('google-signup').addEventListener('click', handleGoogleAuth);
+        
+        window.firebaseDebug = {
+            auth,
+            fetchSignInMethodsForEmail
+        };
+    </script>
+</body>
+</html>

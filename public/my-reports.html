@@ -1,0 +1,865 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SotonFind - My Reports</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f5f7fb;
+            overflow-x: hidden;
+        }
+        
+        /* Sidebar styles */
+        .sidebar {
+            height: 100vh;
+            background: linear-gradient(180deg, #4f46e5 0%, #3b82f6 100%);
+            transition: all 0.3s;
+            box-shadow: 4px 0 10px rgba(0, 0, 0, 0.05);
+            position: fixed;
+            left: 0;
+            z-index: 30;
+        }
+        
+        .sidebar-collapsed {
+            width: 80px;
+        }
+        
+        .sidebar-expanded {
+            width: 250px;
+        }
+        
+        .sidebar-link {
+            color: white;
+            border-radius: 8px;
+            transition: all 0.2s;
+            margin: 5px 12px;
+        }
+        
+        .sidebar-link:hover, .sidebar-link.active {
+            background-color: rgba(255, 255, 255, 0.2);
+        }
+        
+        /* Header styles */
+        .header {
+            background-color: white;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+        }
+        
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid #e5e7eb;
+        }
+        
+        /* Card styles */
+        .card {
+            background-color: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+            transition: all 0.3s;
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+        
+        .item-card {
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+            transition: all 0.3s;
+        }
+        
+        .item-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+        
+        .item-image {
+            height: 200px;
+            object-fit: cover;
+        }
+        
+        /* Button styles */
+        .btn-primary {
+            background-color: #3b82f6;
+            color: white;
+            border-radius: 8px;
+            padding: 0.75rem 1.5rem;
+            font-weight: 600;
+            transition: all 0.3s;
+            box-shadow: 0 4px 6px -1px rgba(59, 130, 246, 0.2);
+        }
+        
+        .btn-primary:hover {
+            background-color: #2563eb;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 15px -3px rgba(59, 130, 246, 0.3);
+        }
+        
+        .btn-secondary {
+            background-color: white;
+            color: #374151;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 0.75rem 1.5rem;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+        
+        .btn-secondary:hover {
+            background-color: #f9fafb;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+        }
+        
+        /* Badge styles */
+        .badge {
+            border-radius: 9999px;
+            padding: 0.25rem 0.75rem;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+        
+        .badge-lost {
+            background-color: #fee2e2;
+            color: #b91c1c;
+        }
+        
+        .badge-found {
+            background-color: #d1fae5;
+            color: #065f46;
+        }
+        
+        .badge-resolved {
+            background-color: #e0e7ff;
+            color: #4338ca;
+        }
+        
+        /* Animation */
+        .fade-in {
+            animation: fadeIn 0.5s ease-in-out;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        /* Sidebar text transitions */
+        .sidebar-text {
+            transition: opacity 0.3s, width 0.3s;
+            white-space: nowrap;
+            overflow: hidden;
+        }
+        
+        .sidebar-collapsed .sidebar-text {
+            opacity: 0;
+            width: 0;
+            display: none;
+        }
+        
+        .sidebar-collapsed .link-text {
+            opacity: 0;
+            width: 0;
+            display: none;
+        }
+
+        /* Category filter chip styles */
+        .filter-chip {
+            border-radius: 9999px;
+            padding: 0.5rem 1rem;
+            font-size: 0.875rem;
+            font-weight: 500;
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+        
+        .filter-chip:hover {
+            transform: translateY(-2px);
+        }
+        
+        .filter-chip.active {
+            background-color: #3b82f6;
+            color: white;
+        }
+        
+        /* Tab styles */
+        .tab {
+            padding: 0.75rem 1.5rem;
+            font-weight: 600;
+            border-bottom: 3px solid transparent;
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+        
+        .tab.active {
+            color: #3b82f6;
+            border-bottom: 3px solid #3b82f6;
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div class="flex h-screen">
+        <!-- Sidebar -->
+        <div id="sidebar" class="sidebar sidebar-expanded">
+            <!-- Logo -->
+            <div class="p-2 pt-6 pl-4 flex items-center justify-between">
+                <div class="flex items-center">
+                    <div class="h-10 w-10 flex items-center justify-center bg-white rounded-xl">
+                        <i class="fas fa-search text-blue-600 text-xl"></i>
+                    </div>
+                    <h1 class="ml-3 text-white text-xl font-bold sidebar-text">SotonFind</h1>
+                </div>
+                <button id="toggleSidebar" class="text-white hover:bg-blue-700 rounded-full p-2">
+                    <i class="fas fa-chevron-left"></i>
+                </button>
+            </div>
+            
+            <!-- Menu Links -->
+            <div class="mt-8">
+                <!-- <a href="index.html" class="sidebar-link flex items-center py-3 px-4 mb-2">
+                    <i class="fas fa-home text-xl w-8"></i>
+                    <span class="ml-3 link-text">Home</span>
+                </a> -->
+                
+                <a href="lost-items.html" class="sidebar-link flex items-center py-3 px-4 mb-2">
+                    <i class="fas fa-search-minus text-xl w-8"></i>
+                    <span class="ml-3 link-text">Lost Items</span>
+                </a>
+                
+                <a href="found-items.html" class="sidebar-link flex items-center py-3 px-4 mb-2">
+                    <i class="fas fa-search-plus text-xl w-8"></i>
+                    <span class="ml-3 link-text">Found Items</span>
+                </a>
+                
+                <a href="my-reports.html" class="sidebar-link active flex items-center py-3 px-4 mb-2">
+                    <i class="fas fa-clipboard-list text-xl w-8"></i>
+                    <span class="ml-3 link-text">My Reports</span>
+                </a>
+
+                <!-- <a href="my-claims.html" class="sidebar-link flex items-center py-3 px-4 mb-2">
+                    <i class="fas fa-clipboard-check text-xl w-8"></i>
+                    <span class="ml-3 link-text">My Claims</span>
+                </a> -->
+
+                <div class="border-t border-blue-400 my-4 opacity-30"></div>
+                
+                <a href="user-profile.html" class="sidebar-link flex items-center py-3 px-4 mb-2">
+                    <i class="fas fa-user text-xl w-8"></i>
+                    <span class="ml-3 link-text">My Profile</span>
+                </a>
+
+                <a href=# class="sidebar-link flex items-center py-3 px-4 mb-2" id="logout">
+                    <i class="fas fa-sign-out-alt text-xl w-8"></i>
+                    <span class="ml-3 link-text">Logout</span>
+                </a>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div id="main-content" class="flex-1 ml-64 transition-all duration-300">
+            <!-- Header -->
+            <header class="header w-full flex items-center justify-between px-6 py-4 top-0 z-20">
+                <div class="flex pr-4 items-center">
+                    <h2 class="text-xl font-bold text-gray-800">My Reports</h2>
+                </div>
+                
+                <div class="flex items-center space-x-4">
+                    <div class="flex space-x-2">
+                        <a href="create-report.html" class="btn-primary py-2 px-4 flex items-center">
+                            <i class="fas fa-plus-circle mr-2"></i>
+                            <span>Create Report</span>
+                        </a>
+
+                        <!-- <button class="btn-primary py-2 px-4 flex items-center">
+                            <i class="fas fa-plus-circle mr-2"></i>
+                            <span>Report Lost Item</span>
+                        </button> -->
+
+                        <!-- <button class="btn-secondary py-2 px-4 flex items-center">
+                            <i class="fas fa-plus-circle mr-2"></i>
+                            <span>Report Found Item</span>
+                        </button> -->
+                    </div>
+                    
+                    <!-- <div class="relative">
+                        <button class="btn-secondary p-2 rounded-full relative notification-btn">
+                            <i class="fas fa-bell text-gray-600"></i>
+                            <span class="notification-badge">3</span>
+                        </button>
+                    </div> -->
+                    
+                    <a href="user-profile.html">
+                        <div class="flex items-center bg-gray-100 hover:bg-gray-200 rounded-full p-1 pl-3 cursor-pointer">
+                            <span id="username" class="text-sm font-medium mr-2"></span>
+                            <img id="profile-pic" src="https://static.vecteezy.com/system/resources/thumbnails/003/031/764/small/blue-wide-background-with-linear-blurred-gradient-free-vector.jpg" alt="User" class="user-avatar">
+                        </div>
+                    </a>
+                </div>
+            </header>
+
+            <!-- Page Content -->
+            <main class="pt-8 px-6 pb-8 fade-in">
+                <!-- Tabs Section -->
+                <div class="card">
+                    <div class="flex border-b">
+                        <div id="all-tab" class="tab active">All</div>
+                        <div id="lost-tab" class="tab">Lost</div>
+                        <div id="found-tab" class="tab">Found</div>
+                        <div id="resolved-tab" class="tab">Resolved</div>
+                    </div>
+                    
+                    <!-- Filter & Search Section -->
+                    <div class="p-6">
+                        <div class="flex flex-col md:flex-row md:items-center md:justify-between">
+                            <h1 class="text-2xl font-bold text-gray-800 mb-4 md:mb-0">My Reported Items</h1>
+                            
+                            <div class="flex-1 md:ml-8 md:max-w-md">
+                                <div class="relative">
+                                    <input type="text" placeholder="Search my reports..." class="w-full border border-gray-300 rounded-lg py-3 px-4 pl-10 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                    <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Category Filters
+                        <div class="mt-6">
+                            <h3 class="text-sm font-medium text-gray-700 mb-3">Filter by Category:</h3>
+                            <div class="flex flex-wrap gap-2">
+                                <div class="filter-chip active bg-blue-50 hover:bg-blue-100" data-category="all">
+                                    All Categories
+                                </div>
+                                <div class="filter-chip bg-blue-50 hover:bg-blue-100" data-category="electronics">
+                                    <i class="fas fa-laptop-code mr-2"></i>Electronics
+                                </div>
+                                <div class="filter-chip bg-blue-50 hover:bg-blue-100" data-category="accessories">
+                                    <i class="fas fa-tshirt mr-2"></i>Accessories
+                                </div>
+                                <div class="filter-chip bg-blue-50 hover:bg-blue-100" data-category="books">
+                                    <i class="fas fa-book mr-2"></i>Books
+                                </div>
+                                <div class="filter-chip bg-blue-50 hover:bg-blue-100" data-category="cards">
+                                    <i class="fas fa-id-card mr-2"></i>ID Cards
+                                </div>
+                                <div class="filter-chip bg-blue-50 hover:bg-blue-100" data-category="keys">
+                                    <i class="fas fa-key mr-2"></i>Keys
+                                </div>
+                                <div class="filter-chip bg-blue-50 hover:bg-blue-100" data-category="other">
+                                    <i class="fas fa-ellipsis-h mr-2"></i>Other
+                                </div>
+                            </div>
+                        </div> -->
+                        
+                        <!-- Date Filter
+                        <div class="mt-6">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Date Range</label>
+                                <select class="w-full md:w-1/4 border border-gray-300 rounded-lg py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                    <option>All Time</option>
+                                    <option>Last 24 Hours</option>
+                                    <option>Last Week</option>
+                                    <option>Last Month</option>
+                                    <option>Custom Range</option>
+                                </select>
+                            </div>
+                        </div> -->
+                    </div>
+                </div>
+                
+                <!-- Tab Content -->
+                <div class="mt-8">
+                    <!-- All Reports Tab Content -->
+                    <div id="all-content" class="tab-content active">                                        
+                        <!-- Reports Grid -->
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                            
+                        </div>
+                    </div>
+                    
+                    <!-- Lost Items Tab Content -->
+                    <div id="lost-content" class="tab-content">
+                        <!-- Content will be populated by JavaScript -->
+                    </div>
+                    
+                    <!-- Found Items Tab Content -->
+                    <div id="found-content" class="tab-content">
+                        <!-- Content will be populated by JavaScript -->
+                    </div>
+                    
+                    <!-- Resolved Tab Content -->
+                    <div id="resolved-content" class="tab-content">
+                        <!-- Content will be populated by JavaScript -->
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- Check if a user is logged in, Update user profile -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js";
+        import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js";
+        import { getFirestore, doc, getDoc, collection, query, where, orderBy, getDocs } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js"
+
+        // Firebase config
+        const firebaseConfig = {
+            apiKey: "AIzaSyBBTdHvzVHcGhObHG-WbLyumrgRhDgZRJE",
+            authDomain: "lostfounditemmanagement.firebaseapp.com",
+            projectId: "lostfounditemmanagement",
+            storageBucket: "lostfounditemmanagement.firebasestorage.app",
+            messagingSenderId: "126221630339",
+            appId: "1:126221630339:web:bf4463bd1fb91d023714b6",
+            measurementId: "G-6PZ5MTYJLQ"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        
+        // Check if a user is logged in
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                // User is logged in, proceed with displaying content
+                console.log("✅ User is signed in:", user.email);
+            
+                // Get user profile data from Firestore
+                try {
+                    const userRef = doc(db, "users", user.uid);
+                    const userDoc = await getDoc(userRef);
+
+                    if (userDoc.exists()) {
+                        const userData = userDoc.data();
+
+                        // Update header user profile
+                        const usernameElement = document.getElementById("username");
+                        const profilePicElement = document.getElementById('profile-pic');
+
+                        // Set username from Firestore
+                        // usernameElement.textContent = userData.username || 'Anonymous';
+                        usernameElement.textContent = userData.username || 'Anonymous';
+
+                        // Set profile picture with fallback
+                        profilePicElement.src = userData.photoURL || 'https://static.vecteezy.com/system/resources/thumbnails/003/031/764/small/blue-wide-background-with-linear-blurred-gradient-free-vector.jpg';
+
+                        // // Update welcome message if needed
+                        // const welcomeHeading = document.querySelector('h1');
+                        // if (welcomeHeading) {
+                        //     welcomeHeading.textContent = `Welcome back, ${userData.username || 'User'}!`;
+                        // }
+                    } else {
+                        // User is not logged in, redirect to login page
+                        console.log("⚠️ User data not found in Firestore.");
+                        setDefaultUserInfo();
+                    }
+
+                } catch (error) {
+                    console.error("❌ Error fetching user data:", error);
+                    setDefaultUserInfo()
+                }        
+            } else {
+                // User not logged in, redirect to login
+                console.log("🚫 No user is logged in.")
+                window.location.href = 'auth.html';
+            }
+        });
+
+        // Query both collections for user's reports
+        async function loadUserReports() {
+            try {
+                const user = auth.currentUser;
+                if (!user) return;
+
+                // Initialize reportsContainer first
+                const reportsContainer = document.querySelector('#all-content .grid');
+                if (!reportsContainer) {
+                    console.error("Reports container not found");
+                    return;
+                }
+
+                // Query both collections for user's reports
+                const [lostQuery, foundQuery] = await Promise.all([
+                    getDocs(query(collection(db, 'lostItems'), 
+                        where('userRef', '==', doc(db, "users", user.uid)),
+                        orderBy('createdAt', 'desc'))),
+                    getDocs(query(collection(db, 'foundItems'),
+                        where('userRef', '==', doc(db, "users", user.uid)),
+                        orderBy('createdAt', 'desc')))
+                ]);
+
+                // Combine and sort all reports
+                const allReports = [];
+                
+                lostQuery.forEach(doc => {
+                    allReports.push({ 
+                        ...doc.data(), 
+                        id: doc.id, 
+                        type: 'lost',
+                        resolved: doc.data().resolved || false  // Add this line
+                    });
+                });
+
+                foundQuery.forEach(doc => {
+                    allReports.push({ 
+                        ...doc.data(), 
+                        id: doc.id, 
+                        type: 'found',
+                        resolved: doc.data().resolved || false  // Add this line
+                    });
+                });
+
+                // Sort by date (newest first)
+                allReports.sort((a, b) => b.createdAt - a.createdAt);
+
+                // Update UI
+                reportsContainer.innerHTML = '';
+
+                if (allReports.length === 0) {
+                    reportsContainer.innerHTML = '<p class="text-gray-600 col-span-full text-center py-8">No reports found</p>';
+                    return;
+                }
+
+                allReports.forEach(report => {
+                    const isResolved = report.resolved === true;  // Changed to check boolean
+                    const badgeType = report.type;  // Always use original type for badge
+                    
+                    reportsContainer.innerHTML += ` 
+                        <div class="item-card bg-white" 
+                            data-category="${report.itemCategory}" 
+                            data-type="${report.type}" 
+                            data-status="${isResolved ? 'resolved' : 'active'}" 
+                            data-search="${(report.itemName || '').toLowerCase()} 
+                                ${(report.itemCategory || '').toLowerCase()} 
+                                ${report.type === 'lost' 
+                                    ? (report.lastSeenLocation || '').toLowerCase() 
+                                    : (report.locationFound || '').toLowerCase()}">
+                            <div class="relative">
+                                ${report.images?.length > 0 ? 
+                                    `<img src="${report.images[0]}" alt="${report.itemName}" class="w-full item-image">` :
+                                    `<div class="w-full item-image-placeholder bg-gray-100 flex items-center justify-center">
+                                        <i class="fas fa-image text-gray-400 text-3xl"></i>
+                                    </div>`
+                                }
+                                <span class="badge badge-${badgeType} absolute top-4 right-4">
+                                    ${report.type.charAt(0).toUpperCase() + report.type.slice(1)}
+                                </span>
+                            </div>
+                            <div class="p-4">
+                                <h3 class="text-lg font-bold text-gray-800">${report.itemName}</h3>
+                                <p class="text-gray-600 text-sm mt-1">
+                                    ${report.type === 'lost' ? 
+                                        `Last seen at ${report.lastSeenLocation}` : 
+                                        `Found at ${report.locationFound}`}
+                                </p>
+                                <div class="flex items-center mt-3">
+                                    <i class="fas fa-calendar-alt text-blue-500 mr-2"></i>
+                                    <p class="text-gray-500 text-sm">
+                                        ${report.dateLost ? 
+                                            (typeof report.dateLost.toDate === 'function' 
+                                            ? report.dateLost.toDate().toLocaleDateString()
+                                            : new Date(report.dateLost).toLocaleDateString()) 
+                                            : 
+                                            (report.dateFound ?
+                                            (typeof report.dateFound.toDate === 'function' 
+                                                ? report.dateFound.toDate().toLocaleDateString()
+                                                : new Date(report.dateFound).toLocaleDateString())
+                                            : 'N/A')}
+                                    </p>
+                                </div>
+                                <div class="flex justify-between mt-4">
+                                    <button class="text-blue-600 font-medium text-sm hover:underline"
+                                        onclick="location.href='edit-report.html?id=${report.id}&type=${report.type}'">
+                                        ${isResolved ? 'View Details' : 'Edit Report'}
+                                    </button>
+                                    <span class="px-3 py-1 text-xs font-medium rounded-full
+                                        ${isResolved ? 
+                                            'bg-green-100 text-green-800' : 
+                                            'bg-yellow-100 text-yellow-800'}">
+                                        ${isResolved ? 'Resolved' : 'Active'}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+});
+
+                // Update counts
+                document.querySelectorAll('.tab').forEach(tab => {
+                    const count = {
+                        'all-tab': allReports.length,
+                        'lost-tab': allReports.filter(r => r.type === 'lost').length,
+                        'found-tab': allReports.filter(r => r.type === 'found').length,
+                        'resolved-tab': allReports.filter(r => r.resolved).length
+                    }[tab.id];
+
+                    // Map tab IDs to display text
+                    const labelMap = {
+                        'all-tab': 'All',
+                        'lost-tab': 'Lost',
+                        'found-tab': 'Found',
+                        'resolved-tab': 'Resolved'
+                    };
+                    
+                    tab.textContent = `${labelMap[tab.id]} (${count})`;
+                });
+
+                // // Update results count display
+                // const resultsCountElement = document.getElementById('results-count');
+                // if (resultsCountElement) {
+                //     resultsCountElement.textContent = allReports.length;
+                // }
+
+            } catch (error) {
+                console.error("Error loading reports:", error);
+                const errorContainer = document.querySelector('#all-content .grid, .tab-content.active .grid');
+                if (errorContainer) {
+                    errorContainer.innerHTML = '<p class="text-red-500">Error loading reports. Please try again later.</p>';
+                }
+            }
+        }
+
+        // Update the auth state handler
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                loadUserReports();
+                // ... existing profile code ...
+            } else {
+                window.location.href = 'auth.html';
+            }
+        });
+
+        // After loading reports, add the search functionality:
+        const searchInput = document.querySelector('input[type="text"]');
+        
+        function handleSearch(e) {
+            const searchTerm = e.target.value.trim().toLowerCase();
+            const terms = searchTerm.split(' ').filter(term => term.length > 0);
+            
+            const activeTabContent = document.querySelector('.tab-content.active');
+            if (!activeTabContent) return;
+            
+            const grid = activeTabContent.querySelector('.grid');
+            if (!grid) return;
+            
+            const items = grid.querySelectorAll('.item-card');
+            
+            items.forEach(item => {
+                const searchText = item.dataset.search || '';
+                const matchesAll = terms.every(term => searchText.includes(term));
+                item.style.display = matchesAll ? 'block' : 'none';
+            });
+        }
+        
+        if (searchInput) {
+            searchInput.addEventListener('input', handleSearch);
+        }
+
+
+
+        function setDefaultUserInfo() {
+            document.getElementById("username").textContent = 'Anonymous';
+            document.getElementById("profile-pic").src = 'https://static.vecteezy.com/system/resources/thumbnails/003/031/764/small/blue-wide-background-with-linear-blurred-gradient-free-vector.jpg';
+        }
+
+        // Logout handler
+        document.getElementById("logout").addEventListener("click", (e) => {
+            e.preventDefault(); // prevent default link behavior
+            signOut(auth).then(() => {
+                window.location.href = "auth.html";
+            }).catch((error) => {
+                console.error("❌ Logout Error:", error);
+            });
+        });
+
+        // Sidebar toggle functionality
+        const sidebar = document.getElementById('sidebar');
+        const mainContent = document.getElementById('main-content');
+        const toggleBtn = document.getElementById('toggleSidebar');
+        
+        toggleBtn.addEventListener('click', () => {
+            if (sidebar.classList.contains('sidebar-expanded')) {
+                // Collapse sidebar
+                sidebar.classList.remove('sidebar-expanded');
+                sidebar.classList.add('sidebar-collapsed');
+                mainContent.classList.remove('ml-64');
+                mainContent.classList.add('ml-20');
+                toggleBtn.innerHTML = '<i class="fas fa-chevron-right"></i>';
+            } else {
+                // Expand sidebar
+                sidebar.classList.remove('sidebar-collapsed');
+                sidebar.classList.add('sidebar-expanded');
+                mainContent.classList.remove('ml-20');
+                mainContent.classList.add('ml-64');
+                toggleBtn.innerHTML = '<i class="fas fa-chevron-left"></i>';
+            }
+        });
+        
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+                
+                document.querySelectorAll('.tab-content').forEach(content => 
+                    content.classList.remove('active'));
+                
+                const contentId = tab.id.replace('-tab', '-content');
+                document.getElementById(contentId).classList.add('active');
+                
+                const filterType = tab.id.replace('-tab', '');
+                filterItems(filterType); 
+                
+                // Reapply search filter
+                handleSearch({ target: searchInput });
+            });
+        });
+        
+        // Category filter functionality
+        const categoryFilters = document.querySelectorAll('.filter-chip');
+        
+        categoryFilters.forEach(filter => {
+            filter.addEventListener('click', () => {
+                // Remove active class from all filters
+                categoryFilters.forEach(f => f.classList.remove('active'));
+                
+                // Add active class to clicked filter
+                filter.classList.add('active');
+                
+                // Get active tab
+                const activeTab = document.querySelector('.tab.active').id;
+                
+                // Filter items
+                if (activeTab === 'all-tab') {
+                    filterByCategory(filter.dataset.category);
+                } else if (activeTab === 'lost-tab') {
+                    filterByTypeAndCategory('lost', filter.dataset.category);
+                } else if (activeTab === 'found-tab') {
+                    filterByTypeAndCategory('found', filter.dataset.category);
+                } else if (activeTab === 'resolved-tab') {
+                    filterByStatusAndCategory('resolved', filter.dataset.category);
+                }
+            });
+        });
+        
+        // Filter functions
+        function filterItems(type) {
+            const items = document.querySelectorAll('.item-card');
+            let visibleCount = 0;
+            
+            items.forEach(item => {
+                const itemType = item.dataset.type;
+                const itemStatus = item.dataset.status;
+                
+                const matches = {
+                    'all': true,  // Show all items
+                    'lost': itemType === 'lost',  // All lost items (both statuses)
+                    'found': itemType === 'found',  // All found items (both statuses)
+                    'resolved': itemStatus === 'resolved'  // All resolved items (both types)
+                }[type];
+
+                item.style.display = matches ? 'block' : 'none';
+                if (matches) visibleCount++;
+            });
+
+            populateTabContent(type, visibleCount);
+        }
+        
+        function filterByCategory(category) {
+            const items = document.querySelectorAll('.item-card');
+            let visibleCount = 0;
+            
+            items.forEach(item => {
+                if (category === 'all' || item.dataset.category === category) {
+                    item.style.display = 'block';
+                    visibleCount++;
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+
+            // // Update results count
+            // document.getElementById('results-count').textContent = visibleCount;
+        }
+
+        function filterByTypeAndCategory(type, category) {
+            const items = document.querySelectorAll('.item-card');
+            let visibleCount = 0;
+            
+            items.forEach(item => {
+                if (item.dataset.type === type && (category === 'all' || item.dataset.category === category)) {
+                    item.style.display = 'block';
+                    visibleCount++;
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+
+            // // Update results count for current tab
+            // const activeTab = document.querySelector('.tab-content.active');
+            // const countElement = activeTab.querySelector('.results-count');
+            // if (countElement) {
+            //     countElement.textContent = visibleCount;
+            // }
+        }
+
+        function filterByStatusAndCategory(status, category) {
+            const items = document.querySelectorAll('.item-card');
+            let visibleCount = 0;
+            
+            items.forEach(item => {
+                if (item.dataset.status === status && (category === 'all' || item.dataset.category === category)) {
+                    item.style.display = 'block';
+                    visibleCount++;
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+
+            // // Update results count for current tab
+            // const activeTab = document.querySelector('.tab-content.active');
+            // const countElement = activeTab.querySelector('.results-count');
+            // if (countElement) {
+            //     countElement.textContent = visibleCount;
+            // }
+        }
+        
+        function populateTabContent(type, count) {
+            const targetContent = document.getElementById(`${type}-content`);
+            const allItems = document.querySelectorAll('#all-content .item-card');
+            
+            if (!targetContent || targetContent.id === 'all-content') return;
+
+            targetContent.innerHTML = `
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6"></div>
+            `;
+
+            const gridContainer = targetContent.querySelector('.grid');
+            allItems.forEach(item => {
+                if (item.style.display !== 'none') {
+                    gridContainer.appendChild(item.cloneNode(true));
+                }
+            });
+        }
+        
+        // Initialize with the "All" tab active
+        filterItems('all');
+    </script>
+
+    <!-- <script src="notifications.js"></script> -->
+</body>
+</html>
